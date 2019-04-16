@@ -10,6 +10,7 @@
     <string name="hello_blank_home_fragment">Hello home fragment</string>
     <string name="hello_blank_notification_fragment">Hello notif fragment</string>
     <string name="hello_blank_account_fragment">Hello account fragment</string>
+    <string name="text_not_member">No Account yet? Create One</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

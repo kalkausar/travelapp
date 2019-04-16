@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "397443826766",
+    "firebase_url": "https://travelappkt.firebaseio.com",
+    "project_id": "travelappkt",
+    "storage_bucket": "travelappkt.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:397443826766:android:0b9caff9e6a5467f",
+        "android_client_info": {
+          "package_name": "com.example.kalkausar.sardifatravel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "397443826766-h64g3f49tqmhrqs074ea1k0orall19c3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsWDgNnRSvfffxBmq4dnkpGsj11ZWVNb8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "397443826766-h64g3f49tqmhrqs074ea1k0orall19c3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
