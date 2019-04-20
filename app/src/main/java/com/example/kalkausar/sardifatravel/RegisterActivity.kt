@@ -7,82 +7,54 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.TextInputEditText
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.Toast
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.storage.FirebaseStorage
-import de.hdodenhof.circleimageview.CircleImageView
-import java.util.regex.Matcher
-import java.util.regex.Pattern
+import kotlinx.android.synthetic.main.activity_register.*
+
 
 class RegisterActivity : AppCompatActivity() {
-    internal lateinit var ImgUserPhoto: CircleImageView
-    internal var PReqCode = 1
-    internal var REQUESCODE = 1
-    internal lateinit var pickedImgUrl:Uri
-
     private lateinit var auth: FirebaseAuth
-
-    private lateinit var UserName:TextInputEditText
-    private lateinit var Email:TextInputEditText
-    private lateinit var Password:TextInputEditText
-    private lateinit var ConfirmPassword:TextInputEditText
-
-    private lateinit var loadingProgress:ProgressBar
-    private lateinit var buttonRegister:Button
-
+    var PReqCode = 1
+    var REQUESCODE = 1
+    lateinit var pickedImgUrl: Uri
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
+        progressBar_reg.visibility = View.INVISIBLE
+
         auth = FirebaseAuth.getInstance()
-
-        ImgUserPhoto = findViewById(R.id.imageView_avareg)
-
-        UserName = findViewById(R.id.editTextUserName)
-        Email = findViewById(R.id.editTextEmail)
-        Password = findViewById(R.id.editTextPassword)
-        ConfirmPassword = findViewById(R.id.editTextConfirmPassword)
-        loadingProgress = findViewById(R.id.progressBar_reg)
-        buttonRegister = findViewById(R.id.buttonRegister)
-        loadingProgress.setVisibility(View.INVISIBLE)
 
         buttonRegister.setOnClickListener {
             buttonRegister.visibility = View.INVISIBLE
-            loadingProgress.visibility = View.VISIBLE
-            val name = UserName.text.toString()
-            val email = Email.text.toString()
-            val password = Password.text.toString()
-            val confirmpassword = ConfirmPassword.text.toString()
+            progressBar_reg.visibility = View.VISIBLE
+            val name = editTextUserName.text.toString()
+            val email = editTextEmail.text.toString()
+            val password = editTextPassword.text.toString()
+            val confirmpassword = editTextConfirmPassword.text.toString()
 
 
-            if (password.length > 8 && isValidPassword(Password.text.toString().trim { it <= ' ' })) {
-                CreateUserAccount(email, name, password)
+            if (password.length > 8 && isValidPassword(editTextPassword.text.toString().trim())) {
+                CreateUserAccount(email, password)
             }
             if (email.isEmpty() || name.isEmpty() || password.isEmpty() || password != confirmpassword) {
                 showMessage("Field tidak boleh kosong")
                 buttonRegister.visibility = View.VISIBLE
-                loadingProgress.visibility = View.INVISIBLE
-            } else {
+                progressBar_reg.visibility = View.INVISIBLE
+            } else if (password.length < 8) {
                 showMessage("Password minimum 8 karakter terdiri dari angka dan huruf besar, kecil dan simbol")
                 buttonRegister.visibility = View.VISIBLE
-                loadingProgress.visibility = View.INVISIBLE
+                progressBar_reg.visibility = View.INVISIBLE
             }
         }
-
-        ImgUserPhoto.setOnClickListener {
+        imageView_avareg.setOnClickListener {
             if (Build.VERSION.SDK_INT >= 22) {
                 checkAndRequestForPermission()
 
@@ -92,7 +64,7 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-    fun isValidPassword(password: String?) : Boolean {
+    private fun isValidPassword(password: String?): Boolean {
         password?.let {
             val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{4,}$"
             val passwordMatcher = Regex(passwordPattern)
@@ -101,55 +73,43 @@ class RegisterActivity : AppCompatActivity() {
         } ?: return false
     }
 
-    fun CreateUserAccount(email: String, name: String, password: String) {
+    private fun CreateUserAccount(email: String, password: String) {
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this, OnCompleteListener<AuthResult> { task ->
+            .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     showMessage("Account Created")
-                    updateUserInfo(name, pickedImgUrl, auth.getCurrentUser())
+                    updateUI()
                 } else {
                     showMessage("Account Creation Failed" + task.exception!!.message)
                     buttonRegister.visibility = View.VISIBLE
-                    loadingProgress.visibility = View.INVISIBLE
+                    progressBar_reg.visibility = View.INVISIBLE
                 }
-            })
+            }
     }
 
-    fun updateUserInfo(name: String, pickedImgUrl: Uri, currentUser: FirebaseUser?) {
-        val mStorage = FirebaseStorage.getInstance().getReference().child("users_photos")
-        val imageFilePatch = mStorage.child(pickedImgUrl.lastPathSegment)
-        imageFilePatch.putFile(pickedImgUrl).addOnSuccessListener(OnSuccessListener<Any> {
-            imageFilePatch.getDownloadUrl().addOnSuccessListener(OnSuccessListener<Uri> { uri ->
-                val profileUpdate = UserProfileChangeRequest.Builder()
-                    .setDisplayName(name)
-                    .setPhotoUri(uri)
-                    .build()
+//    private fun updateUserInfo(name: String, pickedImgUrl: Uri, currentUser: FirebaseUser?) {
+//        val mStorage = FirebaseStorage.getInstance().reference.child("users_photos")
+//        val imageFilePatch = mStorage.child(pickedImgUrl.lastPathSegment!!)
+//        imageFilePatch.putFile(pickedImgUrl).addOnSuccessListener {
+//            imageFilePatch.downloadUrl.addOnSuccessListener { uri ->
+//                val profileUpdate = UserProfileChangeRequest.Builder()
+//                    .setDisplayName(name)
+//                    .setPhotoUri(uri)
+//                    .build()
+//
+//                currentUser!!.updateProfile(profileUpdate)
+//                    .addOnCompleteListener { task ->
+//                        if (task.isSuccessful) {
+//                            showMessage("Register Complete")
+//                            updateUI()
+//                        }
+//                    }
+//            }
+//        }
+//    }
 
-                currentUser!!.updateProfile(profileUpdate)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            showMessage("Register Complete")
-                            updateUI()
-                        }
-                    }
-            })
-        })
-    }
-
-    fun updateUI() {
-        val login = Intent(applicationContext, LoginActivity::class.java)
-        startActivity(login)
-        finish()
-    }
-
-    fun showMessage(message: String) {
+    private fun showMessage(message: String) {
         Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
-    }
-
-    fun openGallery() {
-        val galleryIntent = Intent(Intent.ACTION_GET_CONTENT)
-        galleryIntent.type = "image/*"
-        startActivityForResult(galleryIntent, REQUESCODE)
     }
 
     private fun checkAndRequestForPermission() {
@@ -178,12 +138,24 @@ class RegisterActivity : AppCompatActivity() {
             openGallery()
     }
 
+    private fun openGallery() {
+        val galleryIntent = Intent(Intent.ACTION_GET_CONTENT)
+        galleryIntent.type = "image/*"
+        startActivityForResult(galleryIntent, REQUESCODE)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == Activity.RESULT_OK && requestCode == REQUESCODE && data != null) {
             pickedImgUrl = data.data
-            ImgUserPhoto.setImageURI(pickedImgUrl)
+            imageView_avareg.setImageURI(pickedImgUrl)
         }
+    }
+
+    private fun updateUI() {
+        val login = Intent(applicationContext, LoginActivity::class.java)
+        startActivity(login)
+        finish()
     }
 }
